@@ -1,25 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import './App.css';
+import Recipe from './Recipe';
+import RecipeList from './RecipeList';
+
 
 function App() {
+
+  const APP_ID = 'ffaf6eb8';
+  const APP_KEY = 'f1ab4f8c8abfeda0b657313fe22d736a';
+
+  const [recipes, setRecipes] = useState([]);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState('chicken');
+
+  useEffect(() => {
+    getRecipes();
+  }, [query]);
+
+  const getRecipes = async () => {
+    const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${APP_ID}&app_key=${APP_KEY}`);
+    const data = await response.json();
+    setRecipes(data.hits);
+
+  }
+
+  const updateSearch = e => {
+    setSearch(e.target.value);
+    console.log(search)
+  }
+
+  const getSearch = e => {
+    e.preventDefault();
+    setQuery(search);
+    setSearch('');
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <form className='search-form' onSubmit={getSearch} >
+          <input className='search-bar' type="text" value={search} onChange={updateSearch} />
+          <button className='search-button' type="submit">Search</button>
+        </form>
+        <h1>Search for recipes</h1>
+        <Switch>
+          <Route path='/' exact render={(props) => <RecipeList {...props} recipes={recipes} query={query} />} />
+          <Route path='/recipe/:id' render={(props) => <Recipe {...props} recipes={recipes} query={query} />} />
+        </Switch>
+      </div>
+    </Router>
   );
 }
 
